@@ -16,6 +16,15 @@ public class AuthorDao implements AuthorDaoStrategy {
     private final String PASSWORD = "admin";
     
     @Override
+    public int deleteAuthorById(Object id) throws ClassNotFoundException, SQLException{
+        db.openConnection(DRIVER, URL, USER, PASSWORD);
+        
+        int result = db.deleteById("author", "author_id", id);
+        db.closeConnection();
+        return result;
+    }
+    
+    @Override
     public List<Author> getAuthorList() throws ClassNotFoundException, SQLException{
         db.openConnection(DRIVER, URL, USER, PASSWORD);
         

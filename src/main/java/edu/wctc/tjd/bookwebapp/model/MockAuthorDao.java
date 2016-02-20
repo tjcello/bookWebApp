@@ -27,5 +27,12 @@ public class MockAuthorDao implements AuthorDaoStrategy {
         authorList.add(new Author(3, "Your Sister", date));
         return authorList;
     }
+    
+    @Override
+    public int deleteAuthorById(Object id){
+        return 1;
+    }
+
+    
 
 }

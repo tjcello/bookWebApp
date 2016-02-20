@@ -8,6 +8,10 @@ import java.util.List;
 public class AuthorService {
    private AuthorDaoStrategy dao = new AuthorDao();
    
+   public int deleteAuthorById(Object id) throws ClassNotFoundException, SQLException{
+       return dao.deleteAuthorById(id);
+   }
+   
    public List<Author> getAuthorList() throws ClassNotFoundException, SQLException{
        return dao.getAuthorList();
        
