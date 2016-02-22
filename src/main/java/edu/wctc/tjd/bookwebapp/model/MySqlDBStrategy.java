@@ -243,7 +243,11 @@ public class MySqlDBStrategy implements DBStrategy {
 
         db.closeConnection();
         
-        
+        db.openConnection("com.mysql.jdbc.Driver", "jdbc:mysql://localhost:3306/book", "root", "admin");
+        List<String> colNames2 = Arrays.asList("author_name", "date_added");
+        List<Object> colValues2 = Arrays.asList("Ernest Hemmingway", "1931-06-05");
+        db.insertRecord("author", colNames2, colValues2);
+        db.closeConnection();
 
         db.openConnection("com.mysql.jdbc.Driver", "jdbc:mysql://localhost:3306/book", "root", "admin");
 
