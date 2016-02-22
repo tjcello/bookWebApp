@@ -253,14 +253,10 @@ public class MySqlDBStrategy implements DBStrategy {
 
     }
 
-    @Override
-    public int deleteAuthorById(Object id) throws ClassNotFoundException, SQLException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    
 
-    @Override
-    public int deleteById(String author, String author_id, Object id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+   
+
+   
 
 }

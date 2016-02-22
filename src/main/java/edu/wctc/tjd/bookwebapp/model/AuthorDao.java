@@ -19,7 +19,7 @@ public class AuthorDao implements AuthorDaoStrategy {
     public int deleteAuthorById(Object id) throws ClassNotFoundException, SQLException{
         db.openConnection(DRIVER, URL, USER, PASSWORD);
         
-        int result = db.deleteById("author", "author_id", id);
+        int result = db.deleteRecordbyPrimaryKey("author", "author_id", id);
         db.closeConnection();
         return result;
     }
@@ -51,4 +51,6 @@ public class AuthorDao implements AuthorDaoStrategy {
         List<Author> authors = dao.getAuthorList();
         System.out.println(authors);
     }
+
+    
 }

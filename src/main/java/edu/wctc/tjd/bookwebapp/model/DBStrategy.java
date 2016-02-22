@@ -16,9 +16,7 @@ public interface DBStrategy {
             int maxRecords) throws SQLException;
    public int deleteRecordbyPrimaryKey(String tableName, String primaryKey, Object primaryKeyValue) throws SQLException;
    public int updateRecordById(String tableName, List<String> colNames, List<Object> colValues, String pkColName, Object value) throws SQLException;
-   public int deleteAuthorById(Object id) throws ClassNotFoundException, SQLException;
-
-    public int deleteById(String author, String author_id, Object id);
+     
     public int updatebyID(String tableName, List<String> colNames, List<Object> colValues, String pkColName, Object value) throws SQLException;
     public int insertRecord(String tableName, List <String> columnNames, List <Object>columnValues) throws SQLException;
 
