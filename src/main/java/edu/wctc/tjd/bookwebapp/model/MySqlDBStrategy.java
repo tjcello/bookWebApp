@@ -196,27 +196,27 @@ public class MySqlDBStrategy implements DBStrategy {
     @Override
     public int insertRecord(String tableName, List<String> columnNames, List<Object> columnValues) throws SQLException {
         int recordsInserted = 0;
-        PreparedStatement preSmt = null;
+        PreparedStatement pSmt = null;
 
         
         try {
-            preSmt = buildInsertStatement(conn, tableName, columnNames);
+            pSmt = buildInsertStatement(conn, tableName, columnNames);
 
             final Iterator i = columnValues.iterator();
             int index = 1; 
             while (i.hasNext()) {
                 final Object obj = i.next();
-                preSmt.setObject(index++, obj);
+                pSmt.setObject(index++, obj);
             }
 
-            recordsInserted = preSmt.executeUpdate();
+            recordsInserted = pSmt.executeUpdate();
         } catch (SQLException sqle) {
             throw sqle;
         } catch (Exception e) {
             throw new SQLException(e.getMessage());
         } finally {
             try {
-                preSmt.close();
+                pSmt.close();
                 conn.close();
             } catch (SQLException e) {
                 throw e;
@@ -242,6 +242,8 @@ public class MySqlDBStrategy implements DBStrategy {
         int result = db.updateRecordById("author", colNames, colValues, "author_id", 1);
 
         db.closeConnection();
+        
+        
 
         db.openConnection("com.mysql.jdbc.Driver", "jdbc:mysql://localhost:3306/book", "root", "admin");
 
