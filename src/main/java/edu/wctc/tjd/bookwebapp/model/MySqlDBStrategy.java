@@ -1,5 +1,6 @@
 package edu.wctc.tjd.bookwebapp.model;
 
+import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -8,9 +9,10 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
+import javax.enterprise.context.SessionScoped;
 
-
-public class MySqlDBStrategy implements DBStrategy {
+@SessionScoped
+public class MySqlDBStrategy implements DBStrategy, Serializable {
 
     private Connection conn;
 
@@ -42,7 +44,6 @@ public class MySqlDBStrategy implements DBStrategy {
         PreparedStatement pstmt = null;
         int recsUpdated = 0;
 
-        
         try {
             pstmt = buildUpdateStatement(conn, tableName, colNames, pkColName);
 
@@ -50,12 +51,11 @@ public class MySqlDBStrategy implements DBStrategy {
             int index = 1;
             Object obj = null;
 
-           
             while (i.hasNext()) {
                 obj = i.next();
                 pstmt.setObject(index++, obj);
             }
-           
+
             pstmt.setObject(index, value);
 
             recsUpdated = pstmt.executeUpdate();
@@ -70,13 +70,12 @@ public class MySqlDBStrategy implements DBStrategy {
                 conn.close();
             } catch (SQLException e) {
                 throw e;
-            } 
-        } 
+            }
+        }
 
         return recsUpdated;
     }
 
-   
     @Override
     public List<Map<String, Object>> findAllRecords(String tableName, int maxRecords) throws SQLException {
         String sql;
@@ -103,7 +102,6 @@ public class MySqlDBStrategy implements DBStrategy {
         }
         return records;
     }
-
 
     @Override
     public int deleteRecordbyPrimaryKey(String tableName, String primaryKey, Object primaryKeyValue) throws SQLException {
@@ -141,13 +139,13 @@ public class MySqlDBStrategy implements DBStrategy {
         return connection.prepareStatement(finalSQL);
     }
 
-    private PreparedStatement buildInsertStatement(Connection conn, String tableName, List columnNames) throws SQLException { 
+    private PreparedStatement buildInsertStatement(Connection conn, String tableName, List columnNames) throws SQLException {
         StringBuffer sql = new StringBuffer("Insert Into " + tableName + " (");
-        final Iterator i = columnNames.iterator(); 
+        final Iterator i = columnNames.iterator();
         while (i.hasNext()) {
             sql.append(i.next() + ", ");
         }
-        sql = new StringBuffer((sql.toString()).substring(0, (sql.toString()).lastIndexOf(", ")) + ") Values ("); 
+        sql = new StringBuffer((sql.toString()).substring(0, (sql.toString()).lastIndexOf(", ")) + ") Values (");
         for (int m = 0; m < columnNames.size(); m++) {
             sql.append("?, ");
         }
@@ -171,7 +169,7 @@ public class MySqlDBStrategy implements DBStrategy {
                 obj = i.next();
                 pstmt.setObject(index++, obj);
             }
-            
+
             pstmt.setObject(index, value);
 
             recsUpdated = pstmt.executeUpdate();
@@ -186,24 +184,22 @@ public class MySqlDBStrategy implements DBStrategy {
                 conn.close();
             } catch (SQLException e) {
                 throw e;
-            } 
+            }
         }
 
         return recsUpdated;
     }
 
-    
     @Override
     public int insertRecord(String tableName, List<String> columnNames, List<Object> columnValues) throws SQLException {
         int recordsInserted = 0;
         PreparedStatement pSmt = null;
 
-        
         try {
             pSmt = buildInsertStatement(conn, tableName, columnNames);
 
             final Iterator i = columnValues.iterator();
-            int index = 1; 
+            int index = 1;
             while (i.hasNext()) {
                 final Object obj = i.next();
                 pSmt.setObject(index++, obj);
@@ -220,8 +216,8 @@ public class MySqlDBStrategy implements DBStrategy {
                 conn.close();
             } catch (SQLException e) {
                 throw e;
-            } 
-        } 
+            }
+        }
 
         return recordsInserted;
     }
@@ -236,17 +232,17 @@ public class MySqlDBStrategy implements DBStrategy {
         db.closeConnection();
 
         db.openConnection("com.mysql.jdbc.Driver", "jdbc:mysql://localhost:3306/book", "root", "admin");
+        List<String> colNames2 = Arrays.asList("author_name", "date_added");
+        List<Object> colValues2 = Arrays.asList("Ernest Hemmingway", "1931-06-05");
+        db.insertRecord("author", colNames2, colValues2);
+        db.closeConnection();
+
+        db.openConnection("com.mysql.jdbc.Driver", "jdbc:mysql://localhost:3306/book", "root", "admin");
 
         List<String> colNames = Arrays.asList("author_name");
         List<Object> colValues = Arrays.asList("Lucifer");
         int result = db.updateRecordById("author", colNames, colValues, "author_id", 1);
 
-        db.closeConnection();
-        
-        db.openConnection("com.mysql.jdbc.Driver", "jdbc:mysql://localhost:3306/book", "root", "admin");
-        List<String> colNames2 = Arrays.asList("author_name", "date_added");
-        List<Object> colValues2 = Arrays.asList("Ernest Hemmingway", "1931-06-05");
-        db.insertRecord("author", colNames2, colValues2);
         db.closeConnection();
 
         db.openConnection("com.mysql.jdbc.Driver", "jdbc:mysql://localhost:3306/book", "root", "admin");
@@ -258,11 +254,5 @@ public class MySqlDBStrategy implements DBStrategy {
         db.closeConnection();
 
     }
-
-    
-
-   
-
-   
 
 }

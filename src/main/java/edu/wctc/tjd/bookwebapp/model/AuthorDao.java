@@ -1,19 +1,26 @@
 
 package edu.wctc.tjd.bookwebapp.model;
 
+import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.*;
+import javax.enterprise.context.SessionScoped;
+import javax.inject.Inject;
 
 /**
  *
  * @author tjcel
  */
-public class AuthorDao implements AuthorDaoStrategy {
-    private DBStrategy db = new MySqlDBStrategy();
+@SessionScoped
+public class AuthorDao implements AuthorDaoStrategy, Serializable {
+    @Inject
+    private DBStrategy db;
     private final String DRIVER = "com.mysql.jdbc.Driver";
     private final String URL = "jdbc:mysql://localhost:3306/book";
     private final String USER = "root";
     private final String PASSWORD = "admin";
+    
+   
     
     @Override
     public int deleteAuthorById(Object id) throws ClassNotFoundException, SQLException{
@@ -46,11 +53,30 @@ public class AuthorDao implements AuthorDaoStrategy {
         return authors;
     }
     
+    public DBStrategy getDb() {
+        return db;
+    }
+
+    public void setDb(DBStrategy db) {
+        this.db = db;
+    }
+    
+    
+    
     public static void main(String[] args) throws ClassNotFoundException, SQLException {
         AuthorDaoStrategy dao = new AuthorDao();
         List<Author> authors = dao.getAuthorList();
         System.out.println(authors);
     }
+
+    
+
+    
+
+    
+
+  
+    
 
     
 }

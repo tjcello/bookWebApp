@@ -1,12 +1,19 @@
 package edu.wctc.tjd.bookwebapp.model;
 
+import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import javax.enterprise.context.SessionScoped;
+import javax.inject.Inject;
 
-public class AuthorService {
-   private AuthorDaoStrategy dao = new AuthorDao();
+@SessionScoped
+
+public class AuthorService implements Serializable {
+    
+    @Inject
+   private AuthorDaoStrategy dao;
    
    public int deleteAuthorById(Object id) throws ClassNotFoundException, SQLException{
        return dao.deleteAuthorById(id);

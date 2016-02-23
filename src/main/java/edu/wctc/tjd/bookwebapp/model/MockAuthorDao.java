@@ -5,17 +5,23 @@
  */
 package edu.wctc.tjd.bookwebapp.model;
 
+import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import javax.enterprise.context.SessionScoped;
+import javax.enterprise.inject.Alternative;
 
 /**
  *
  * @author tjcel
  */
-public class MockAuthorDao implements AuthorDaoStrategy {
+@Alternative
+@SessionScoped
+public class MockAuthorDao implements AuthorDaoStrategy, Serializable {
 
+    private DBStrategy db;
     Date date = new Date();
 
     List<Author> authorList = new ArrayList<Author>();
@@ -33,6 +39,28 @@ public class MockAuthorDao implements AuthorDaoStrategy {
         return 1;
     }
 
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
+    
+
+   
+
+   
+
+    public DBStrategy getDb() {
+        return db;
+    }
+
+    public void setDb(DBStrategy db) {
+        this.db = db;
+    }
+    
     
 
 }
