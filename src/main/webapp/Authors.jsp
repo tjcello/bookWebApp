@@ -42,30 +42,36 @@
         </div>
         --%>
 
-        <form method="POST" action="AuthorController?action=addEditDelete">
-            <input type="submit" value="Add/Edit" name="submit" />&nbsp;
-            <input type="submit" value="Delete" name="submit" />
+        
+            <input type="submit" value="Add" name="add" onclick ="location.href='AuthorController?taskType=add'" />
+            
             <br><br>
             <table width="500" border="1" cellspacing="0" cellpadding="4" padding="10">
                 <tr style="background-color: black;color:white;">
-                    <th align="left" class="tableHead">ID</th>
+                    
                     <th align="left" class="tableHead">Author Name</th>
                     <th align="right" class="tableHead">Date Added</th>
+                    <th></th>
+                    <th></th>
                 </tr>
-                <c:forEach var="a" items="${requestScope.authorList}" varStatus="rowCount">
+                <c:forEach var="a" items="${authors}" varStatus="rowCount">
 
-                    <td><input type="checkbox" name="authorId" value="${a.authorId}" /></td>
+                   
                     <td align="left">${a.authorName}</td>
                     <td align="right">
                         <fmt:formatDate pattern="M/d/yyyy" value="${a.dateAdded}"></fmt:formatDate>
                         </td>
+                        
+                        <td><input type="submit" value="Edit" name="edit" onclick ="location.href='AuthorController?taskType=edit&id=${a.authorId}'" />&nbsp;</td>
+                        <td><input type="submit" value="Delete" name="delete" onclick ="location.href='AuthorController?taskType=deleteAuthor&id=${a.authorId}'" />&nbsp;</td>
+                        
+                        
                         </tr>
                 </c:forEach>
             </table>
             <br>
-            <input type="submit" value="Add/Edit" name="submit" />&nbsp;
-            <input type="submit" value="Delete" name="submit" />
-        </form>
+            
+        
         <p>Return to <a href="index.html">Home Page</a></p>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
     </body>

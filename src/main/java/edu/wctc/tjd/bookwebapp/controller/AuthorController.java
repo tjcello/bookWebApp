@@ -9,8 +9,11 @@ import edu.wctc.tjd.bookwebapp.model.Author;
 import edu.wctc.tjd.bookwebapp.model.AuthorService;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -25,6 +28,15 @@ import javax.servlet.http.HttpServletResponse;
  */
 @WebServlet(name = "AuthorController", urlPatterns = {"/AuthorController"})
 public class AuthorController extends HttpServlet {
+    
+    private static final String AUTHORS = "Authors.jsp";
+    private static final String AUTHOR_ADD = "add.jsp";
+    private static final String AUTHOR_EDIT = "edit.jsp";
+    
+    private String driverClass;
+    private String url;
+    private String userName;
+    private String password;
 
     
     @Inject
@@ -39,23 +51,86 @@ public class AuthorController extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws ServletException, IOException, ClassNotFoundException, SQLException {
+        
+        
         response.setContentType("text/html;charset=UTF-8");
+        
+        String dest= "";
+        String taskType = request.getParameter("taskType");
+        
+        configDbConnection();
+        
         try {
-
-    
-            List<Author> authorList = authSrv.getAuthorList();
-
-            request.setAttribute("authorList", authorList);
-
-        } catch (Exception e) {
-            request.setAttribute("errorMsg", e.getMessage());
+            if(taskType.equals("viewAuthor")) {
+                System.out.println("hi");
+                request.setAttribute("authors", authSrv.getAuthorList());
+                dest = AUTHORS;
+            }
+            else if (taskType.equals("deleteAuthor")){
+                String authorId = (String)request.getParameter("id");
+                authSrv.deleteAuthorById(authorId);
+                this.refreshList(request, authSrv);
+                dest= AUTHORS;
+            }
+            else if(taskType.equals("edit")){
+                String authorId = (String)request.getParameter("id");
+                Author author = authSrv.getAuthorById(authorId);
+                request.setAttribute("author", author);
+                dest = AUTHOR_EDIT;
+            }
+            else if(taskType.equals("add")){
+                dest=AUTHOR_ADD;
+            }
+            else if(taskType.equals("save")){
+                String authorName = request.getParameter("authorName");
+                String authorId = request.getParameter("authorId");
+                authSrv.saveOrUpdateAuthor(authorId, authorName);
+                this.refreshList(request, authSrv);
+                dest = AUTHORS;
+            }
+            
+            else if(taskType.equals("new")){
+                String authorName = request.getParameter("authorName");
+                
+                if(authorName!= null){
+                    authSrv.saveOrUpdateAuthor(null, authorName);
+                    
+                }
+                this.refreshList(request, authSrv);
+                dest= AUTHORS;
+            }
+            else if(taskType.equals("cancel")){
+                this.refreshList(request, authSrv);
+                dest = AUTHORS;
+            }
         }
-        RequestDispatcher view
-                = request.getRequestDispatcher("/Authors.jsp");
+            catch(Exception e){
+                    
+                    }
+        RequestDispatcher view = request.getRequestDispatcher(dest);
         view.forward(request, response);
+        
+    
 
     }
+    
+    private void refreshList (HttpServletRequest request, AuthorService authService) throws ClassNotFoundException, SQLException{
+        List<Author> authors = authSrv.getAuthorList();
+        request.setAttribute("authors", authors);
+    }
+    private void configDbConnection() { 
+        authSrv.getDao().initDao(driverClass, url, userName, password);   
+    }
+    
+      @Override
+    public void init() throws ServletException {
+        // Get init params from web.xml
+        driverClass = getServletContext().getInitParameter("db.driver.class");
+        url = getServletContext().getInitParameter("db.url");
+        userName = getServletContext().getInitParameter("db.username");
+        password = getServletContext().getInitParameter("db.password");
+      }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
@@ -69,7 +144,11 @@ public class AuthorController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        try{
         processRequest(request, response);
+        } catch(ClassNotFoundException | SQLException ex) {
+            Logger.getLogger(AuthorController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     /**
@@ -83,7 +162,11 @@ public class AuthorController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+         try{
         processRequest(request, response);
+        } catch(ClassNotFoundException | SQLException ex) {
+            Logger.getLogger(AuthorController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     /**
@@ -95,5 +178,7 @@ public class AuthorController extends HttpServlet {
     public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
+    
+    
 
 }

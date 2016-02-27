@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import javax.enterprise.context.Dependent;
 import javax.enterprise.context.SessionScoped;
 import javax.enterprise.inject.Alternative;
 
@@ -18,7 +19,7 @@ import javax.enterprise.inject.Alternative;
  * @author tjcel
  */
 @Alternative
-@SessionScoped
+@Dependent
 public class MockAuthorDao implements AuthorDaoStrategy, Serializable {
 
     private DBStrategy db;
@@ -34,7 +35,6 @@ public class MockAuthorDao implements AuthorDaoStrategy, Serializable {
         return authorList;
     }
     
-    @Override
     public int deleteAuthorById(Object id){
         return 1;
     }
@@ -60,6 +60,28 @@ public class MockAuthorDao implements AuthorDaoStrategy, Serializable {
     public void setDb(DBStrategy db) {
         this.db = db;
     }
+
+    @Override
+    public void initDao(String driver, String url, String user, String pswd) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public boolean saveAuthor(Integer id, String authorName) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public boolean deleteAuthorById(Integer authorId) throws ClassNotFoundException, SQLException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Author getAuthorById(Integer authorId) throws ClassNotFoundException, SQLException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    
     
     
 

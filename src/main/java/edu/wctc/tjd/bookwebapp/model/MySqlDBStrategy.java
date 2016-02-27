@@ -191,35 +191,78 @@ public class MySqlDBStrategy implements DBStrategy, Serializable {
     }
 
     @Override
-    public int insertRecord(String tableName, List<String> columnNames, List<Object> columnValues) throws SQLException {
-        int recordsInserted = 0;
-        PreparedStatement pSmt = null;
+    public final boolean insertRecord(String tableName, List colDescriptors,
+            List colValues) throws SQLException {
 
+        PreparedStatement pstmt = null;
+        int recsUpdated = 0;
+
+		// do this in an excpetion handler so that we can depend on the
+        // finally clause to close the connection
         try {
-            pSmt = buildInsertStatement(conn, tableName, columnNames);
+            pstmt = buildInsertStatement(conn, tableName, colDescriptors);
 
-            final Iterator i = columnValues.iterator();
+            final Iterator i = colValues.iterator();
             int index = 1;
             while (i.hasNext()) {
                 final Object obj = i.next();
-                pSmt.setObject(index++, obj);
+                pstmt.setObject(index++, obj);
             }
+            recsUpdated = pstmt.executeUpdate();
 
-            recordsInserted = pSmt.executeUpdate();
-        } catch (SQLException sqle) {
-            throw sqle;
-        } catch (Exception e) {
-            throw new SQLException(e.getMessage());
+        
+        
         } finally {
             try {
-                pSmt.close();
+                pstmt.close();
                 conn.close();
             } catch (SQLException e) {
-                throw e;
-            }
-        }
+                throw new SQLException();
+            } // end try
+        } // end finally
 
-        return recordsInserted;
+        if (recsUpdated == 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    @Override
+    public final Map<String, Object> findById(String tableName, String primaryKeyFieldName,
+            Object primaryKeyValue) throws SQLException{
+
+        String sql = "SELECT * FROM " + tableName + " WHERE " + primaryKeyFieldName + " = ?";
+        PreparedStatement stmt = null;
+        final Map<String, Object> record = new HashMap();
+
+        try {
+            stmt = conn.prepareStatement(sql);
+            stmt.setObject(1, primaryKeyValue);
+            ResultSet rs = stmt.executeQuery();
+            final ResultSetMetaData metaData = rs.getMetaData();
+            final int fields = metaData.getColumnCount();
+
+            // Retrieve the raw data from the ResultSet and copy the values into a Map
+            // with the keys being the column names of the table.
+            if (rs.next()) {
+                for (int i = 1; i <= fields; i++) {
+                    record.put(metaData.getColumnName(i), rs.getObject(i));
+                }
+            }
+            
+        } catch (SQLException e) {
+            throw new SQLException();
+        } finally {
+            try {
+                stmt.close();
+                conn.close();
+            } catch (SQLException e) {
+                throw new SQLException();
+            } // end try
+        } // end finally
+
+        return record;
     }
 
     public static void main(String[] args) throws ClassNotFoundException, SQLException {
@@ -233,7 +276,7 @@ public class MySqlDBStrategy implements DBStrategy, Serializable {
 
         db.openConnection("com.mysql.jdbc.Driver", "jdbc:mysql://localhost:3306/book", "root", "admin");
         List<String> colNames2 = Arrays.asList("author_name", "date_added");
-        List<Object> colValues2 = Arrays.asList("Ernest Hemmingway", "1931-06-05");
+        List<Object> colValues2 = Arrays.asList("Your Mother", "1991-06-05");
         db.insertRecord("author", colNames2, colValues2);
         db.closeConnection();
 
