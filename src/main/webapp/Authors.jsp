@@ -19,6 +19,11 @@
         <link rel="stylesheet" 
               href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
     </head>
+    <style>
+        body{
+            background-color:yellow;
+        }
+    </style>
     <body>
         <h1>Here are some authors</h1>
         <%--<div class ="row" >
@@ -46,8 +51,8 @@
             <input type="submit" value="Add" name="add" onclick ="location.href='AuthorController?taskType=add'" />
             
             <br><br>
-            <table width="500" border="1" cellspacing="0" cellpadding="4" padding="10">
-                <tr style="background-color: black;color:white;">
+            <table width="500" border="2" cellspacing="0" cellpadding="4" padding="10">
+                <tr style="background-color: blue;color:white;">
                     
                     <th align="left" class="tableHead">Author Name</th>
                     <th align="right" class="tableHead">Date Added</th>
