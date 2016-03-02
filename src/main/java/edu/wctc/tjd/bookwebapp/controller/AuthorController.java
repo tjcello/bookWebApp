@@ -5,6 +5,7 @@
  */
 package edu.wctc.tjd.bookwebapp.controller;
 
+import static com.sun.corba.se.spi.presentation.rmi.StubAdapter.request;
 import edu.wctc.tjd.bookwebapp.model.Author;
 import edu.wctc.tjd.bookwebapp.model.AuthorService;
 import java.io.IOException;
@@ -16,11 +17,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 /**
  *
@@ -29,9 +32,12 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet(name = "AuthorController", urlPatterns = {"/AuthorController"})
 public class AuthorController extends HttpServlet {
     
+    
+    
     private static final String AUTHORS = "Authors.jsp";
     private static final String AUTHOR_ADD = "add.jsp";
     private static final String AUTHOR_EDIT = "edit.jsp";
+    
     
     private String driverClass;
     private String url;
@@ -53,6 +59,8 @@ public class AuthorController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException, ClassNotFoundException, SQLException {
         
+        HttpSession session = request.getSession();
+        ServletContext ctx = request.getServletContext();
         
         response.setContentType("text/html;charset=UTF-8");
         
