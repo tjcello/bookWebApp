@@ -19,7 +19,7 @@
     </head>
     <body>
         <h2 align="center">Edit Author Here</h2>
-        <form align ="center" method="post" action="AuthorController?taskType=save">
+        <form align ="center" method="post" action=<%= response.encodeURL("AuthorController?taskType=save")%>>
             <input hidden="true" type="text" readonly name = authorId value="${author.authorId}" />
             <input type="text" name="authorName" value="${author.authorName}"/>
             <input hidden="true" type="date" readonly name="dateAdded" value="${author.dateAdded}" />

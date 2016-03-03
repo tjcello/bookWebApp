@@ -64,6 +64,8 @@ public class AuthorController extends HttpServlet {
         
         response.setContentType("text/html;charset=UTF-8");
         
+        
+        
         String dest= "";
         String taskType = request.getParameter("taskType");
         
@@ -116,7 +118,7 @@ public class AuthorController extends HttpServlet {
             catch(Exception e){
                     
                     }
-        RequestDispatcher view = request.getRequestDispatcher(dest);
+        RequestDispatcher view = request.getRequestDispatcher(response.encodeURL(dest));
         view.forward(request, response);
         
     

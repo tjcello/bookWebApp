@@ -20,7 +20,7 @@
         
     <body>
     <center><h2>Add Author Here</h2></center>
-    <center><form method="post" action="AuthorController?taskType=new">
+    <center><form method="post" action=<%= response.encodeURL("AuthorController?taskType=new")%>>
             <label>Enter New Author Name</label>
             <input type="text" name="authorName" />
             <input class="btn btn-success" type="submit" value="Save" />
