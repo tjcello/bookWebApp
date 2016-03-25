@@ -7,6 +7,8 @@ package edu.wctc.tjd.bookwebapp.model;
 
 import java.sql.SQLException;
 import java.util.List;
+import javax.sql.DataSource;
+
 
 /**
  *
@@ -21,6 +23,8 @@ public interface AuthorDaoStrategy {
 
     boolean saveAuthor(Integer id, String authorName) throws ClassNotFoundException, SQLException;
     public Author getAuthorById(Integer authorId) throws ClassNotFoundException, SQLException;
+    
+    public abstract void initDao(DataSource ds) throws Exception;
    
 
 }

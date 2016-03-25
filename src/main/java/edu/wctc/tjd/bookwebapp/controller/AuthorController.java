@@ -16,6 +16,9 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -24,6 +27,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.sql.DataSource;
 
 /**
  *
@@ -31,22 +35,20 @@ import javax.servlet.http.HttpSession;
  */
 @WebServlet(name = "AuthorController", urlPatterns = {"/AuthorController"})
 public class AuthorController extends HttpServlet {
-    
-    
-    
-    private static final String AUTHORS = "Authors.jsp";
-    private static final String AUTHOR_ADD = "add.jsp";
-    private static final String AUTHOR_EDIT = "edit.jsp";
-    
-    
+
+    private static final String PRODUCTS = "Authors.jsp";
+    private static final String PRODUCT_ADD = "add.jsp";
+    private static final String PRODUCT_EDIT = "edit.jsp";
+
     private String driverClass;
     private String url;
     private String userName;
     private String password;
+    private String dbJndiName;
 
-    
     @Inject
     private AuthorService authSrv;
+
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -57,90 +59,90 @@ public class AuthorController extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException, ClassNotFoundException, SQLException {
-        
+            throws ServletException, IOException, ClassNotFoundException, SQLException, Exception {
+
         HttpSession session = request.getSession();
         ServletContext ctx = request.getServletContext();
-        
+
         response.setContentType("text/html;charset=UTF-8");
-        
-        
-        
-        String dest= "";
+
+        String dest = "";
         String taskType = request.getParameter("taskType");
-        
+
         configDbConnection();
-        
+
         try {
-            if(taskType.equals("viewAuthor")) {
+            if (taskType.equals("viewAuthor")) {
                 System.out.println("hi");
                 request.setAttribute("authors", authSrv.getAuthorList());
-                dest = AUTHORS;
-            }
-            else if (taskType.equals("deleteAuthor")){
-                String authorId = (String)request.getParameter("id");
+                dest = PRODUCTS;
+            } else if (taskType.equals("deleteAuthor")) {
+                String authorId = (String) request.getParameter("id");
                 authSrv.deleteAuthorById(authorId);
                 this.refreshList(request, authSrv);
-                dest= AUTHORS;
-            }
-            else if(taskType.equals("edit")){
-                String authorId = (String)request.getParameter("id");
+                dest = PRODUCTS;
+            } else if (taskType.equals("edit")) {
+                String authorId = (String) request.getParameter("id");
                 Author author = authSrv.getAuthorById(authorId);
                 request.setAttribute("author", author);
-                dest = AUTHOR_EDIT;
-            }
-            else if(taskType.equals("add")){
-                dest=AUTHOR_ADD;
-            }
-            else if(taskType.equals("save")){
+                dest = PRODUCT_EDIT;
+            } else if (taskType.equals("add")) {
+                dest = PRODUCT_ADD;
+            } else if (taskType.equals("save")) {
                 String authorName = request.getParameter("authorName");
                 String authorId = request.getParameter("authorId");
                 authSrv.saveOrUpdateAuthor(authorId, authorName);
                 this.refreshList(request, authSrv);
-                dest = AUTHORS;
-            }
-            
-            else if(taskType.equals("new")){
+                dest = PRODUCTS;
+            } else if (taskType.equals("new")) {
                 String authorName = request.getParameter("authorName");
-                
-                if(authorName!= null){
+
+                if (authorName != null) {
                     authSrv.saveOrUpdateAuthor(null, authorName);
-                    
+
                 }
                 this.refreshList(request, authSrv);
-                dest= AUTHORS;
-            }
-            else if(taskType.equals("cancel")){
+                dest = PRODUCTS;
+            } else if (taskType.equals("cancel")) {
                 this.refreshList(request, authSrv);
-                dest = AUTHORS;
+                dest = PRODUCTS;
             }
+        } catch (Exception e) {
+
         }
-            catch(Exception e){
-                    
-                    }
         RequestDispatcher view = request.getRequestDispatcher(response.encodeURL(dest));
         view.forward(request, response);
-        
-    
 
     }
-    
-    private void refreshList (HttpServletRequest request, AuthorService authService) throws ClassNotFoundException, SQLException{
+
+    private void refreshList(HttpServletRequest request, AuthorService authService) throws ClassNotFoundException, SQLException {
         List<Author> authors = authSrv.getAuthorList();
         request.setAttribute("authors", authors);
     }
-    private void configDbConnection() { 
-        authSrv.getDao().initDao(driverClass, url, userName, password);   
+
+    private void configDbConnection() throws NamingException, Exception {
+         if(dbJndiName == null) {
+            authSrv.getDao().initDao(driverClass, url, userName, password);   
+        } else {
+            /*
+             Lookup the JNDI name of the Glassfish connection pool
+             and then use it to create a DataSource object.
+             */
+            Context ctx = new InitialContext();
+            DataSource ds = (DataSource) ctx.lookup(dbJndiName);
+            authSrv.getDao().initDao(ds);
+        }
     }
-    
-      @Override
+
+    @Override
     public void init() throws ServletException {
         // Get init params from web.xml
-        driverClass = getServletContext().getInitParameter("db.driver.class");
-        url = getServletContext().getInitParameter("db.url");
-        userName = getServletContext().getInitParameter("db.username");
-        password = getServletContext().getInitParameter("db.password");
-      }
+//        driverClass = getServletContext().getInitParameter("db.driver.class");
+//        url = getServletContext().getInitParameter("db.url");
+//        userName = getServletContext().getInitParameter("db.username");
+//        password = getServletContext().getInitParameter("db.password");
+        dbJndiName = getServletContext().getInitParameter("db.jndi.name");
+    }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
@@ -154,9 +156,11 @@ public class AuthorController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        try{
-        processRequest(request, response);
-        } catch(ClassNotFoundException | SQLException ex) {
+        try {
+            processRequest(request, response);
+        } catch (ClassNotFoundException | SQLException ex) {
+            Logger.getLogger(AuthorController.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
             Logger.getLogger(AuthorController.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -172,9 +176,11 @@ public class AuthorController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-         try{
-        processRequest(request, response);
-        } catch(ClassNotFoundException | SQLException ex) {
+        try {
+            processRequest(request, response);
+        } catch (ClassNotFoundException | SQLException ex) {
+            Logger.getLogger(AuthorController.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception ex) {
             Logger.getLogger(AuthorController.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -188,7 +194,5 @@ public class AuthorController extends HttpServlet {
     public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
-    
-    
 
 }

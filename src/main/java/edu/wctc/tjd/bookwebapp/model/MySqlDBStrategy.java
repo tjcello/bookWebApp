@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
 import javax.enterprise.context.SessionScoped;
+import javax.sql.DataSource;
 
 @SessionScoped
 public class MySqlDBStrategy implements DBStrategy, Serializable {
@@ -24,6 +25,18 @@ public class MySqlDBStrategy implements DBStrategy, Serializable {
 
     MySqlDBStrategy() {
 
+    }
+    
+    /**
+     * Open a connection using a connection pool configured on server.
+     *
+     * @param ds - a reference to a connection pool via a JNDI name, producing
+     * this object. Typically done in a servlet using InitalContext object.
+     * @throws DataAccessException - if ds cannot be established
+     */
+    @Override
+    public final void openConnection(DataSource ds) throws SQLException {
+        conn = ds.getConnection();
     }
 
     @Override
@@ -265,37 +278,37 @@ public class MySqlDBStrategy implements DBStrategy, Serializable {
         return record;
     }
 
-    public static void main(String[] args) throws ClassNotFoundException, SQLException {
-        DBStrategy db = new MySqlDBStrategy();
-        db.openConnection("com.mysql.jdbc.Driver", "jdbc:mysql://localhost:3306/book", "root", "admin");
-        List<Map<String, Object>> rawData = db.findAllRecords("author", 0);
-
-        System.out.println(rawData);
-
-        db.closeConnection();
-
-        db.openConnection("com.mysql.jdbc.Driver", "jdbc:mysql://localhost:3306/book", "root", "admin");
-        List<String> colNames2 = Arrays.asList("author_name", "date_added");
-        List<Object> colValues2 = Arrays.asList("Your Mother", "1991-06-05");
-        db.insertRecord("author", colNames2, colValues2);
-        db.closeConnection();
-
-        db.openConnection("com.mysql.jdbc.Driver", "jdbc:mysql://localhost:3306/book", "root", "admin");
-
-        List<String> colNames = Arrays.asList("author_name");
-        List<Object> colValues = Arrays.asList("Lucifer");
-        int result = db.updateRecordById("author", colNames, colValues, "author_id", 1);
-
-        db.closeConnection();
-
-        db.openConnection("com.mysql.jdbc.Driver", "jdbc:mysql://localhost:3306/book", "root", "admin");
-
-        rawData = db.findAllRecords("author", 0);
-
-        System.out.println(rawData);
-
-        db.closeConnection();
-
-    }
+//    public static void main(String[] args) throws ClassNotFoundException, SQLException {
+//        DBStrategy db = new MySqlDBStrategy();
+//        db.openConnection("com.mysql.jdbc.Driver", "jdbc:mysql://localhost:3306/book", "root", "admin");
+//        List<Map<String, Object>> rawData = db.findAllRecords("author", 0);
+//
+//        System.out.println(rawData);
+//
+//        db.closeConnection();
+//
+//        db.openConnection("com.mysql.jdbc.Driver", "jdbc:mysql://localhost:3306/book", "root", "admin");
+//        List<String> colNames2 = Arrays.asList("author_name", "date_added");
+//        List<Object> colValues2 = Arrays.asList("Your Mother", "1991-06-05");
+//        db.insertRecord("author", colNames2, colValues2);
+//        db.closeConnection();
+//
+//        db.openConnection("com.mysql.jdbc.Driver", "jdbc:mysql://localhost:3306/book", "root", "admin");
+//
+//        List<String> colNames = Arrays.asList("author_name");
+//        List<Object> colValues = Arrays.asList("Lucifer");
+//        int result = db.updateRecordById("author", colNames, colValues, "author_id", 1);
+//
+//        db.closeConnection();
+//
+//        db.openConnection("com.mysql.jdbc.Driver", "jdbc:mysql://localhost:3306/book", "root", "admin");
+//
+//        rawData = db.findAllRecords("author", 0);
+//
+//        System.out.println(rawData);
+//
+//        db.closeConnection();
+//
+//    }
 
 }

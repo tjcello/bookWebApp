@@ -3,6 +3,7 @@ package edu.wctc.tjd.bookwebapp.model;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import javax.sql.DataSource;
 
 public interface DBStrategy {
 
@@ -25,5 +26,7 @@ public interface DBStrategy {
             List colValues) throws SQLException;
      public Map<String, Object> findById(String tableName, String primaryKeyFieldName,
             Object primaryKeyValue) throws SQLException;
+     
+      void openConnection(DataSource ds) throws SQLException;
 
 }
