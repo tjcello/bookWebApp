@@ -6,8 +6,9 @@
 package edu.wctc.tjd.bookwebapp.controller;
 
 import static com.sun.corba.se.spi.presentation.rmi.StubAdapter.request;
+import edu.wctc.tjd.bookwebapp.ejb.AuthorFacade;
 import edu.wctc.tjd.bookwebapp.model.Author;
-import edu.wctc.tjd.bookwebapp.model.AuthorService;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
@@ -47,7 +48,7 @@ public class AuthorController extends HttpServlet {
     private String dbJndiName;
 
     @Inject
-    private AuthorService authSrv;
+    private AuthorFacade as;
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -74,16 +75,16 @@ public class AuthorController extends HttpServlet {
         try {
             if (taskType.equals("viewAuthor")) {
                 System.out.println("hi");
-                request.setAttribute("authors", authSrv.getAuthorList());
+                request.setAttribute("authors", as.getAuthorList());
                 dest = PRODUCTS;
             } else if (taskType.equals("deleteAuthor")) {
                 String authorId = (String) request.getParameter("id");
-                authSrv.deleteAuthorById(authorId);
-                this.refreshList(request, authSrv);
+                as.deleteAuthorById(authorId);
+                this.refreshList(request);
                 dest = PRODUCTS;
             } else if (taskType.equals("edit")) {
                 String authorId = (String) request.getParameter("id");
-                Author author = authSrv.getAuthorById(authorId);
+                Author author = as.getAuthorById(authorId);
                 request.setAttribute("author", author);
                 dest = PRODUCT_EDIT;
             } else if (taskType.equals("add")) {
@@ -91,20 +92,20 @@ public class AuthorController extends HttpServlet {
             } else if (taskType.equals("save")) {
                 String authorName = request.getParameter("authorName");
                 String authorId = request.getParameter("authorId");
-                authSrv.saveOrUpdateAuthor(authorId, authorName);
-                this.refreshList(request, authSrv);
+                as.saveAuthor(authorId, authorName);
+                this.refreshList(request);
                 dest = PRODUCTS;
             } else if (taskType.equals("new")) {
                 String authorName = request.getParameter("authorName");
 
                 if (authorName != null) {
-                    authSrv.saveOrUpdateAuthor(null, authorName);
+                    as.saveAuthor(null, authorName);
 
                 }
-                this.refreshList(request, authSrv);
+                this.refreshList(request);
                 dest = PRODUCTS;
             } else if (taskType.equals("cancel")) {
-                this.refreshList(request, authSrv);
+                this.refreshList(request);
                 dest = PRODUCTS;
             }
         } catch (Exception e) {
@@ -115,14 +116,14 @@ public class AuthorController extends HttpServlet {
 
     }
 
-    private void refreshList(HttpServletRequest request, AuthorService authService) throws ClassNotFoundException, SQLException {
-        List<Author> authors = authSrv.getAuthorList();
+    private void refreshList(HttpServletRequest request) throws ClassNotFoundException, SQLException {
+        List<Author> authors = as.getAuthorList();
         request.setAttribute("authors", authors);
     }
 
     private void configDbConnection() throws NamingException, Exception {
          if(dbJndiName == null) {
-            authSrv.getDao().initDao(driverClass, url, userName, password);   
+            as.getDao().initDao(driverClass, url, userName, password);   
         } else {
             /*
              Lookup the JNDI name of the Glassfish connection pool
@@ -130,7 +131,7 @@ public class AuthorController extends HttpServlet {
              */
             Context ctx = new InitialContext();
             DataSource ds = (DataSource) ctx.lookup(dbJndiName);
-            authSrv.getDao().initDao(ds);
+            as.getDao().initDao(ds);
         }
     }
 
