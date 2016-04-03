@@ -70,12 +70,11 @@ public class AuthorController extends HttpServlet {
         String dest = "";
         String taskType = request.getParameter("taskType");
 
-        configDbConnection();
-
+        
         try {
             if (taskType.equals("viewAuthor")) {
                 System.out.println("hi");
-                request.setAttribute("authors", as.getAuthorList());
+                request.setAttribute("authors", as.findAll());
                 dest = PRODUCTS;
             } else if (taskType.equals("deleteAuthor")) {
                 String authorId = (String) request.getParameter("id");
@@ -84,7 +83,7 @@ public class AuthorController extends HttpServlet {
                 dest = PRODUCTS;
             } else if (taskType.equals("edit")) {
                 String authorId = (String) request.getParameter("id");
-                Author author = as.getAuthorById(authorId);
+                Author author = as.find(authorId);
                 request.setAttribute("author", author);
                 dest = PRODUCT_EDIT;
             } else if (taskType.equals("add")) {
@@ -117,23 +116,11 @@ public class AuthorController extends HttpServlet {
     }
 
     private void refreshList(HttpServletRequest request) throws ClassNotFoundException, SQLException {
-        List<Author> authors = as.getAuthorList();
+        List<Author> authors = as.findAll();
         request.setAttribute("authors", authors);
     }
 
-    private void configDbConnection() throws NamingException, Exception {
-         if(dbJndiName == null) {
-            as.getDao().initDao(driverClass, url, userName, password);   
-        } else {
-            /*
-             Lookup the JNDI name of the Glassfish connection pool
-             and then use it to create a DataSource object.
-             */
-            Context ctx = new InitialContext();
-            DataSource ds = (DataSource) ctx.lookup(dbJndiName);
-            as.getDao().initDao(ds);
-        }
-    }
+   
 
     @Override
     public void init() throws ServletException {

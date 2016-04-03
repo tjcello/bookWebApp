@@ -30,7 +30,7 @@ public class AuthorFacade extends AbstractFacade<Author> {
         super(Author.class);
     }
     
-        public void saveAuthor(String id, String name) {
+        public final void saveAuthor(String id, String name) {
         Author author = new Author();
         if (id == null) {
             // must be a new record
