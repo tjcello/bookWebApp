@@ -7,7 +7,9 @@ package edu.wctc.tjd.bookwebapp.model;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Set;
 import javax.persistence.Basic;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -15,17 +17,15 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
-/**
- *
- * @author tjcel
- */
+
 @Entity
 @Table(name = "author")
 @XmlRootElement
@@ -35,35 +35,26 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "Author.findByAuthorName", query = "SELECT a FROM Author a WHERE a.authorName = :authorName"),
     @NamedQuery(name = "Author.findByDateAdded", query = "SELECT a FROM Author a WHERE a.dateAdded = :dateAdded")})
 public class Author implements Serializable {
-
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
     @Column(name = "author_id")
     private Integer authorId;
-    @Basic(optional = false)
-    @NotNull
-    @Size(min = 1, max = 45)
+    @Size(max = 80)
     @Column(name = "author_name")
     private String authorName;
-    @Basic(optional = false)
-    @NotNull
     @Column(name = "date_added")
     @Temporal(TemporalType.DATE)
     private Date dateAdded;
+    @OneToMany(mappedBy = "authorId", cascade = CascadeType.ALL)
+    private Set<Book> bookSet;
 
     public Author() {
     }
 
     public Author(Integer authorId) {
         this.authorId = authorId;
-    }
-
-    public Author(Integer authorId, String authorName, Date dateAdded) {
-        this.authorId = authorId;
-        this.authorName = authorName;
-        this.dateAdded = dateAdded;
     }
 
     public Integer getAuthorId() {
@@ -88,6 +79,15 @@ public class Author implements Serializable {
 
     public void setDateAdded(Date dateAdded) {
         this.dateAdded = dateAdded;
+    }
+
+    @XmlTransient
+    public Set<Book> getBookSet() {
+        return bookSet;
+    }
+
+    public void setBookSet(Set<Book> bookSet) {
+        this.bookSet = bookSet;
     }
 
     @Override
