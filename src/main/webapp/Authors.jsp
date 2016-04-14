@@ -65,7 +65,7 @@
     <br>
 
 
-    <p align="center">Return to <a href="index.html">Index</a></p>
+    <p align="center">Return to <a href="index.jsp">Index</a></p>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 </body>
 </html>

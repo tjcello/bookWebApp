@@ -10,43 +10,38 @@ import edu.wctc.tjd.bookwebapp.model.Book;
 import edu.wctc.tjd.bookwebapp.service.AuthorService;
 import edu.wctc.tjd.bookwebapp.service.BookService;
 import java.io.IOException;
-import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.sql.SQLException;
+import java.util.List;
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpSession;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
 /**
  *
- * @author jlombardo
+ * @author npiette
  */
+@WebServlet(name = "bookController", urlPatterns = {"/bookController"})
 public class BookController extends HttpServlet {
-
-    // NO MAGIC NUMBERS!
-    private static final String NO_PARAM_ERR_MSG = "No request parameter identified";
-    private static final String LIST_PAGE = "/Books.jsp";
-    private static final String ADD_EDIT_BOOKS_PAGE = "/addEditBooks.jsp";
-    private static final String LIST_ACTION = "list";
-    private static final String ADD_EDIT_DELETE_ACTION = "addEditDelete";
-    private static final String SUBMIT_ACTION = "submit";
-    private static final String ADD_EDIT_ACTION = "Add/Edit";
-    private static final String ACTION_PARAM = "action";
-    private static final String SAVE_ACTION = "Save";
-    private static final String CANCEL_ACTION = "Cancel";
-
-    // When using Spring you cannot use @Inject because Spring has no
-    // control over Servlets. Therefore you must have the Servlet ask
-    // Spring for the object to inject (see init() method)
-//    @Inject
-
-    // DO THIS INSTEAD (see init() method):
-    private BookService bookService;
-    private AuthorService authService;
-
+    private static final String BOOKS = "listBooks.jsp";
+    private static final String BOOK_EDIT_VIEW = "edit_book.jsp";
+    private static final String BOOK_ADD_VIEW = "add_book.jsp";
+    private static final String HOME = "index.jsp";
+    private String dbJndiName;
+    private String driverClass;
+    private String url;
+    private String userName;
+    private String password;
+    private BookService bs;
+    private AuthorService as;
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -56,146 +51,120 @@ public class BookController extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
+    /**
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
+     * methods.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     * @throws java.lang.ClassNotFoundException
+     * @throws java.sql.SQLException
+     */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws ServletException, IOException, ClassNotFoundException, SQLException {
         response.setContentType("text/html;charset=UTF-8");
-
-        String destination = LIST_PAGE;
-        String action = request.getParameter(ACTION_PARAM);
-        Book book = null;
-
-        try {
-            /*
-             Determine what action to take based on a passed in QueryString
-             Parameter
-             */
-            switch (action) {
-                case LIST_ACTION:
-                    this.refreshBookList(request, bookService);
-                    this.refreshAuthorList(request, authService);
-                    destination = LIST_PAGE;
+      String dest = "";
+            String taskType = request.getParameter("taskType");
+        try{
+            switch (taskType) {
+                case "viewBooks":
+                    request.setAttribute("books", bs.findAll());
+                    this.refreshBookList(request, bs);
+                    dest = BOOKS;
                     break;
-
-                case ADD_EDIT_DELETE_ACTION:
-                    String subAction = request.getParameter(SUBMIT_ACTION);
-
-                    if (subAction.equals(ADD_EDIT_ACTION)) {
-                        // must be add or edit, go to addEdit page
-                        String[] bookIds = request.getParameterValues("bookId");
-                        if (bookIds == null) {
-                            // must be an add action, nothing to do but
-                            // go to edit page
-                            this.refreshAuthorList(request, authService);
-                        } else {
-                            // must be an edit action, need to get data
-                            // for edit and then forward to edit page
-                            
-                            // Only process first row selected
-                            String bookId = bookIds[0];
-                            book = bookService.findById(bookId);
-                            request.setAttribute("book", book);
-                            this.refreshAuthorList(request, authService);
-                        }
-
-                        destination = ADD_EDIT_BOOKS_PAGE;
-
-                    } else {
-                        // must be DELETE
-                        // get array based on records checked
-                        String[] bookIds = request.getParameterValues("bookId");
-                        for (String id : bookIds) {
-                            book = bookService.findById(id);
-                            bookService.remove(book);
-                        }
-
-                        this.refreshBookList(request, bookService);
-                        this.refreshAuthorList(request, authService);
-                        destination = LIST_PAGE;
+                case "deleteBook":
+                    {
+                        String authorId = (String)request.getParameter("id");
+                        Book book = bs.findById(authorId);
+                        bs.remove(book);
+                        this.refreshBookList(request, bs);
+                        dest = BOOKS;
+                        break;
                     }
+                case "edit":
+                    {
+                        request.setAttribute("dropDownAuthors", as.findAll());
+                        String bookId = (String)request.getParameter("id");
+                        Book book = bs.findById(bookId);
+                        request.setAttribute("book", book);
+                        this.refreshAuthporList(request, as);
+                        this.refreshBookList(request, bs);
+                        dest=BOOK_EDIT_VIEW;
+                        break;
+                    }
+                case "add":
+                    request.setAttribute("dropDownAuthors", as.findAll());
+                    this.refreshAuthporList(request, as);
+                    this.refreshBookList(request, bs);
+                    dest = BOOK_ADD_VIEW;
                     break;
-                    
-                case SAVE_ACTION:
-                    String title = request.getParameter("title");
-                    String isbn = request.getParameter("isbn");
-                    String authorId = request.getParameter("authorId");
-                    String bookId = request.getParameter("bookId");
-                    
-                    if(bookId == null) {
-                        // it must be new
-                        book = new Book(0);
+                case "save":
+                    {
+                        String title = request.getParameter("title");
+                        String Id = request.getParameter("Id");
+                        String isbn = request.getParameter("isbn");
+                        String authorId = request.getParameter("authorId");
+                        Author author = as.findById(authorId);
+                        Book book = new Book();
+                        book.setAuthorId(author);
+                        book.setBookId(Integer.parseInt(Id));
+                        book.setIsbn(isbn);
+                        book.setTitle(title);
+                        bs.edit(book);
+                        this.refreshBookList(request, bs);
+                        dest = BOOKS;
+                        break;
+                    }
+                case "new":
+                    {
+                        String title = request.getParameter("title");
+                        String isbn = request.getParameter("isbn");
+                        String authorId = request.getParameter("authorId");
+                        Book book = new Book();
+                        Author author = as.findById(authorId);
+                        book.setAuthorId(author);
                         book.setTitle(title);
                         book.setIsbn(isbn);
-                        Author author = null;
-                        if(authorId != null) {
-                            author = authService.findById(authorId);
-                            book.setAuthorId(author);
-                        }
-
-                    } else {
-                        // it must be an update
-//                        book = new Book(new Integer(bookId));
-//                        book.setTitle(title);
-//                        book.setIsbn(isbn);
-//                        Author author = null;
-//                        if(authorId != null) {
-//                            author = authService.find(new Integer(authorId));
-//                            book.setAuthorId(author);
-//                        }
-                        
-                        book = bookService.findById(bookId);;
-                        book.setTitle(title);
-                        book.setIsbn(isbn);
-                        Author author = null;
-                        if(authorId != null) {
-                            author = authService.findById(authorId);;
-                            book.setAuthorId(author);
-                        }
+                        bs.edit(book);
+                        this.refreshBookList(request, bs);
+                        dest = BOOKS;
+                        break;
                     }
-                    
-                    bookService.edit(book);
-                    this.refreshBookList(request, bookService);
-                    this.refreshAuthorList(request, authService);
-                    destination = LIST_PAGE;
+                case "cancel":
+                    this.refreshBookList(request, bs);
+                    dest = BOOKS;
                     break;
-                    
-                case CANCEL_ACTION:
-                    this.refreshBookList(request, bookService);
-                    this.refreshAuthorList(request, authService);
-                    destination = LIST_PAGE;
+                case "color":
+                    String table = request.getParameter("showPaletteOnly");
+                    String text = request.getParameter("showPaletteOnly1");
+                    HttpSession session = request.getSession();
+                    session.setAttribute("table",table);
+                    session.setAttribute("text",text);
+                    this.refreshBookList(request, bs);
+                    dest = HOME;
                     break;
-
                 default:
-                    // no param identified in request, must be an error
-                    request.setAttribute("errMsg", NO_PARAM_ERR_MSG);
-                    destination = LIST_PAGE;
+                    dest = HOME;
                     break;
             }
-
-        } catch (Exception e) {
-            request.setAttribute("errMsg", e.getCause().getMessage());
-        }
-
-        // Forward to destination page
-        RequestDispatcher dispatcher
-                = getServletContext().getRequestDispatcher(destination);
-        dispatcher.forward(request, response);
-        
-
+           }catch(Exception e){
+                request.setAttribute(HOME, e);
+           }
+                RequestDispatcher view = request.getRequestDispatcher(response.encodeURL(dest));
+                view.forward(request, response);
     }
-
-    // Avoid D-R-Y
-    private void refreshBookList(HttpServletRequest request, BookService bookService) throws Exception {
-        List<Book> books = bookService.findAll();
-        request.setAttribute("books", books);
-    }
-    
-    private void refreshAuthorList(HttpServletRequest request, AuthorService authService) throws Exception {
-        List<Author> authors = authService.findAll();
-        request.setAttribute("authors", authors);
-    }
-        
+    private void refreshBookList(HttpServletRequest request, BookService bs) throws Exception {
+        List<Book> book = bs.findAll();
+        request.setAttribute("books", book);
+    }  
+    private void refreshAuthporList(HttpServletRequest request, AuthorService as) throws Exception {
+        List<Author> author = as.findAll();
+        request.setAttribute("authors", author);
+    }    
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
+    /**S
      * Handles the HTTP <code>GET</code> method.
      *
      * @param request servlet request
@@ -206,7 +175,13 @@ public class BookController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        try {
+            processRequest(request, response);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(AuthorController.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException ex) {
+            Logger.getLogger(AuthorController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     /**
@@ -220,23 +195,13 @@ public class BookController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
-    }
-    
-    /**
-     * Called after the constructor is called by the container. This is the
-     * correct place to do one-time initialization.
-     *
-     * @throws ServletException
-     */
-    @Override
-    public void init() throws ServletException {
-        // Ask Spring for object to inject
-        ServletContext sctx = getServletContext();
-        WebApplicationContext ctx
-                = WebApplicationContextUtils.getWebApplicationContext(sctx);
-        authService = (AuthorService) ctx.getBean("authorService");
-        bookService = (BookService) ctx.getBean("bookService");
+        try {
+            processRequest(request, response);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(AuthorController.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException ex) {
+            Logger.getLogger(AuthorController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     /**
@@ -248,5 +213,13 @@ public class BookController extends HttpServlet {
     public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
-
+      @Override
+    public void init() throws ServletException {
+        // Ask Spring for object to inject
+        ServletContext sctx = getServletContext();
+        WebApplicationContext ctx
+                = WebApplicationContextUtils.getWebApplicationContext(sctx);
+        as = (AuthorService) ctx.getBean("authorService");
+        bs = (BookService) ctx.getBean("bookService");
+    }
 }
