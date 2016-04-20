@@ -34,7 +34,7 @@
     <jpa:repositories base-package="edu.wctc.tjd.bookwebapp.repository" />
     
     <!-- Begin Spring Security Config -->
-      <!-- begin Spring Security config -->
+    <!-- begin Spring Security config -->
     <sec:global-method-security secured-annotations="enabled" />
 
     <!-- Don't SSL encrypt static resources -->
@@ -56,6 +56,8 @@
         
         <sec:intercept-url pattern="/loginerror.jsp" 
                            access="isAnonymous()" requires-channel="https"/>
+        
+        <sec:intercept-url pattern="/admin/**" access="hasAnyRole('ROLE_MGR')" requires-channel="https" />
 
         <sec:intercept-url 
             pattern="/**" 
@@ -64,9 +66,10 @@
         <!-- Use custom form for login -->
         <sec:form-login 
             username-parameter="j_username" 
-	    password-parameter="j_password"
+            password-parameter="j_password"
             login-processing-url="/j_spring_security_check"
             login-page="/login.jsp" 
+            authentication-success-handler-ref="myAuthenticationHandler"
             default-target-url="/index.jsp"
             always-use-default-target="true"
             authentication-failure-url="/loginerror.jsp"/>
@@ -125,6 +128,11 @@
     <bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
         <property name="entityManagerFactory" ref="entityManagerFactory" />
     </bean>
+    
+    <bean id="myAuthenticationHandler" class="edu.wctc.tjd.bookwebapp.util.MyAuthenticationHandler" />
+    
+
+
 
     <tx:annotation-driven />   
 </beans>

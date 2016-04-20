@@ -48,7 +48,7 @@
                         <input name="edit" value="Edit" type="button" class="btn-primary" id="Id" onclick="location.href='BookController?taskType=edit&id=${item.bookId}'"/>
                     </td>
                     <td>
-                        <input type="submit" name="" value="Delete" class="btn-danger" id="authorId" onclick="location.href='BookController?taskType=deleteBook&id=${item.bookId}'"/>
+                        <input type="submit" name="delete" value="Delete" class="btn-danger" id="authorId" onclick="location.href='BookController?taskType=deleteBook&id=${item.bookId}'"/>
                     </td>
                     </tr>
             </c:forEach>

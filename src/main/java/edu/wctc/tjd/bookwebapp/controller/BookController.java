@@ -78,6 +78,7 @@ public class BookController extends HttpServlet {
                     {
                         String authorId = (String)request.getParameter("id");
                         Book book = bs.findById(authorId);
+                        
                         bs.remove(book);
                         this.refreshBookList(request, bs);
                         dest = BOOKS;
